@@ -16,7 +16,9 @@
 #include "string.h"
 #include "esp_log.h"
 #include "esp_system.h"
-#include "driver/pwm.h"
+#include "driver/ledc.h"
+#include "freertos/portmacro.h"
+
 
 
 
@@ -65,15 +67,16 @@ void task_5_uart_listener(void *args); // since we can not have a actual lock an
 
 
 //these are the handles which can be used to deal and indicate any task
-static xTaskHandle Handle_task_1;
-static xTaskHandle Handle_task_2;
-static xTaskHandle Handle_task_3;
-static xTaskHandle Handle_task_4;
+
+static TaskHandle_t Handle_task_1;
+static TaskHandle_t Handle_task_2;
+static TaskHandle_t Handle_task_3;
+
 
 // initiated three messaging queue to make sure that message can be passd from uart listerner function to their respetive destination function
-static xQueueHandle switchstate_que = NULL;
-static xQueueHandle communication_que_1 = NULL;
-static xQueueHandle communication_que_2 = NULL;
+static QueueHandle_t switchstate_que = NULL;
+static QueueHandle_t communication_que_1 = NULL;
+static QueueHandle_t communication_que_2 = NULL;
 
 
 
@@ -208,7 +211,7 @@ void task_5_uart_listener(void *args){
     uint8_t data;
     while (1)
     {
-        uart_read_bytes(UART_NUM_0, &data, BUF_SIZE, 20 / portTICK_RATE_MS); // read the data from the keyboard
+        uart_read_bytes(UART_NUM_0, &data, BUF_SIZE, 20/ portTICK_PERIOD_MS); // read the data from the keyboard
         if (data == 's')               // if the received data is 's' , then the lock should open
         {
             if(lock_open == false){                                          // is the lock  already closed
